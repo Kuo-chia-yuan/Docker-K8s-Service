@@ -54,6 +54,24 @@ kubectl port-forward svc/wafer-ai-service 30001:80
 streamlit run demo_app.py
 ```
 
+## 📊 即時監控指南
+
+為確保 AI 推論服務運作順暢，建議同時開啟兩個終端機視窗，分別進行狀態監控與資源分析。
+
+| 監控項目 | 指令 | 說明 |
+| :--- | :--- | :--- |
+| **Pod 運作狀態** | `kubectl get pods` | 檢查 Pod 是否處於 `Running` 狀態，以及重啟次數。 |
+| **資源消耗監控** | `kubectl top pods` | 檢查 Pod 目前的 CPU 核心數與實體記憶體佔用量。 |
+
+### 進階：自動化監控技巧 (PowerShell)
+若你想觀察「壓力測試」過程中系統資源的動態變化，可以使用以下指令讓監控畫面自動循環更新：
+
+```powershell
+# 每秒自動更新資源監控畫面
+while($true) { kubectl top pods; Start-Sleep -Seconds 1; cls }
+```
+<img width="2880" height="1706" alt="Demo" src="https://github.com/user-attachments/assets/2446e9c4-00c0-467c-94ec-03bada4ab00a" />
+
 ## 🛠 關鍵維運指令
 
 當你的服務部署到 Kubernetes 後，可以使用以下指令進行日常的監控與管理。
