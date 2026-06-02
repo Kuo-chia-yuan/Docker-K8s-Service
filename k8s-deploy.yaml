@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wafer-ai-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wafer-ai
+  template:
+    metadata:
+      labels:
+        app: wafer-ai
+    spec:
+      containers:
+      - name: wafer-ai-container
+        image: mock-wafer-ai:v1
+        ports:
+        - containerPort: 8000
+        resources:
+          requests: {cpu: "50m"} 
+          limits: {cpu: "200m"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wafer-ai-service
+spec:
+  type: NodePort
+  selector:
+    app: wafer-ai
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+    nodePort: 30001
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: wafer-ai-autoscale
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: wafer-ai-deployment
+  minReplicas: 1
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50 # 建議調低，這樣壓力測試才容易觸發擴容
+  behavior: # 這裡已修正縮排，與 metrics 並列在 spec 下
+    scaleDown:
+      stabilizationWindowSeconds: 30
+    scaleUp:
+      stabilizationWindowSeconds: 0 # 擴容時建議立即反應
+      policies:
+      - type: Pods
+        value: 1 # 限制每次擴容最多只能增加 1 個 Pod
+        periodSeconds: 15 # 每 15 秒檢查一次
